@@ -1,0 +1,28 @@
+[workspace]
+authors = ["Sierra Arn"]
+channels = ["conda-forge"]
+name = "celery-core"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+# Start the I/O-bound worker
+worker-io-up = {cmd = "python -m app.task_queue.workers.io_bound"}
+
+# Start the CPU-bound worker
+worker-cpu-up = {cmd = "python -m app.task_queue.workers.cpu_bound"}
+
+[dependencies]
+python = "*"
+pydantic-settings = "*"
+redis-py = "*"
+celery = "*"
+gevent = "*"
+just = "*"
+
+[feature.test.dependencies]
+ipykernel = "*"
+
+[environments]
+test = ["test"]

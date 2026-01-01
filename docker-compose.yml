@@ -1,0 +1,45 @@
+services:
+  # =====================================================
+  # Redis Database Server Service
+  # =====================================================
+  redis-server:
+    image: redis:8.4.0-alpine
+    container_name: ${REDIS_SERVER_CONTAINER}
+    environment:
+      REDIS_ADMIN_USERNAME: ${REDIS_ADMIN_USERNAME}
+      REDIS_ADMIN_PASSWORD: ${REDIS_ADMIN_PASSWORD}
+      CELERY_REDIS_USERNAME: ${CELERY_REDIS_USERNAME}
+      CELERY_REDIS_PASSWORD: ${CELERY_REDIS_PASSWORD}
+    ports:
+      - "${CELERY_REDIS_EXTERNAL_PORT}:${CELERY_REDIS_INTERNAL_PORT}"
+    volumes:
+      - ./app/initialization/01-create-users.acl:/usr/local/etc/redis/01-create-users.acl
+    command: redis-server --aclfile /usr/local/etc/redis/01-create-users.acl
+
+    networks:
+      - redis-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--user", "${REDIS_ADMIN_USERNAME}", "--pass", "${REDIS_ADMIN_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # =====================================================
+  # Redis Client Service
+  # =====================================================
+  redis-client:
+    image: redis:8.4.0-alpine
+    container_name: ${REDIS_CLIENT_CONTAINER}
+    depends_on:
+      redis-server:
+        condition: service_healthy
+    networks:
+      - redis-network
+    command: tail -f /dev/null
+
+# =====================================================
+# Network Configuration
+# =====================================================
+networks:
+  redis-network:
+    driver: bridge
