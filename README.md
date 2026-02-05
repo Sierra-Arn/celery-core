@@ -87,14 +87,44 @@ the IPython kernel for Jupyter, enabling interactive notebook development and se
     just gen-acl
     ```
 
+5. **Start Redis database**
+   ```bash
+   just redis-up
+   ```
 
 ### **III. Testing**
 
-Once an environment is ready, you can run and test the Celery implementation using the interactive Jupyter notebook `playground-testing.ipynb`. It demonstrates all core functionality — including Redis server startup, task dispatch via `delay`, `apply_async`, and `apply`, priority-based execution, result retrieval with `get()`, and worker-specific behavior. Additionally, you can open a Redis shell to manually verify that everything is working correctly:
+Once a database is ready, you can run and test the Celery implementation with the interactive Jupyter notebook `playground-testing.ipynb`. It demonstrates all core functionality — including task dispatch via `delay`, `apply_async`, and `apply`, priority-based execution, result retrieval with `get()`, and worker-specific behavior.
 
-```bash
-just redis-shell
-```
+1. **Launch JupyterLab**
+
+    ```bash
+    pixi run -e test jupyter lab
+    ```
+
+2. **Test the Celery implementation**
+    - JupyterLab should open automatically in your browser at the default address.
+    - Open the notebook and run the cells interactively.
+
+3. **(Optional) Verify database manually**  
+You can open a Redis shell to manually verify that everything is working correctly:
+
+    ```bash
+    just redis-shell
+    ```
+
+### **IV. Cleanup**
+
+When you finish testing:
+
+1. **Stop JupyterLab**  
+   In the terminal where JupyterLab is running, press `Ctrl+C` to shut it down.
+
+2. **Stop Redis**
+
+    ```bash
+    just redis-down
+    ```
 
 ## **License**
 
