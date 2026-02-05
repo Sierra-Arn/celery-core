@@ -36,40 +36,47 @@ gen-acl:
     ./app/initialization/generate-redis-acl.sh
 
 
-# =====================================================  
-# Docker Compose: Redis Server Initialization  
-# =====================================================  
+# =====================================================
+# Redis Docker Compose Management
+# =====================================================
 # Start local Redis server in detached mode
 redis-up:  
-    docker compose -f docker-compose.yml --env-file .env up -d  
-
-# !!! For development convenience only — using .env file password variables directly in CLI commands !!!  
-# This approach exposes secrets in process lists and shell history; never use in production environments  
-
-# Launch Redis CLI as application user
-redis-shell:
-    docker compose \
-        -f docker-compose.yml \
-        --env-file .env \
-        exec redis-client \
-        redis-cli \
-            --user "$CELERY_REDIS_USERNAME" \
-            --pass "$CELERY_REDIS_PASSWORD" \
-            -h redis-server \
-            -p "$CELERY_REDIS_INTERNAL_PORT"
-
-# Launch Redis CLI as admin user with full privileges
-redis-shell-admin:
-    docker compose \
-        -f docker-compose.yml \
-        --env-file .env \
-        exec redis-client \
-        redis-cli \
-            --user "$REDIS_ADMIN_USERNAME" \
-            --pass "$REDIS_ADMIN_PASSWORD" \
-            -h redis-server \
-            -p "$CELERY_REDIS_INTERNAL_PORT"
+    docker compose --env-file .env up -d  
 
 # Stop and remove Redis container
 redis-down:
-    docker compose -f docker-compose.yml --env-file .env down
+    docker compose --env-file .env down
+
+# =====================================================
+# Redis Interactive Shell Access (Celery Redis)
+# =====================================================
+# !!! For development convenience only — using .env file password variables directly in CLI commands !!!
+# This approach exposes secrets in process lists and command history; never use in production
+
+# Launch Redis CLI for Celery Redis based on user type
+# Usage: just redis-shell [admin]
+#   admin: Optional flag to connect as superuser instead of application user
+
+redis-shell user="app":
+    #!/usr/bin/env bash
+    if [ "{{ user }}" = "admin" ]; then
+        # Launch Redis CLI as admin user with full privileges
+        docker compose \
+            --env-file .env \
+            exec redis-client \
+            redis-cli \
+                --user "$REDIS_ADMIN_USERNAME" \
+                --pass "$REDIS_ADMIN_PASSWORD" \
+                -h redis-server \
+                -p "$CELERY_REDIS_INTERNAL_PORT"
+    else
+        # Launch Redis CLI as application user
+        docker compose \
+            --env-file .env \
+            exec redis-client \
+            redis-cli \
+                --user "$CELERY_REDIS_USERNAME" \
+                --pass "$CELERY_REDIS_PASSWORD" \
+                -h redis-server \
+                -p "$CELERY_REDIS_INTERNAL_PORT"
+    fi
