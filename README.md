@@ -42,8 +42,8 @@ a lightweight, cross-platform command runner that replaces complex shell scripts
 
 ### **Testing & Development Dependencies**
 
-- [ipykernel](https://github.com/ipython/ipykernel) — 
-the IPython kernel for Jupyter, enabling interactive notebook development and seamless integration with the project's virtual environments.
+- [JupyterLab](https://github.com/jupyterlab/jupyterlab) — 
+a next-generation web-based interactive development environment for Jupyter notebooks; used here to create interactive documents for testing and verifying code execution.
 
 
 ## **Quick Start**
