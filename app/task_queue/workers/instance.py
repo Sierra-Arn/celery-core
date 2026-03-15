@@ -1,5 +1,5 @@
-# app/task_queue/workers/worker.py
-from .config import WorkerConfig
+# app/task_queue/workers/instance.py
+from .schema import WorkerSchema
 from ..instance import celery_app
 
 
@@ -13,7 +13,7 @@ class CeleryWorker:
     Stateless approach is used here for simplicity since this is an educational project.
     """
 
-    def __init__(self, config: WorkerConfig):
+    def __init__(self, config: WorkerSchema):
         """
         Initialize the worker with the given configuration.
 
@@ -41,6 +41,7 @@ class CeleryWorker:
         """
         Start the Celery worker with the configured settings.
         """
+
         worker_args = [
             "worker",
             "--hostname", self.name,

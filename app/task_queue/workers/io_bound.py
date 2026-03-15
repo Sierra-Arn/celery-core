@@ -9,29 +9,37 @@
 from gevent import monkey
 monkey.patch_all()
 
-from .config import WorkerConfig
-from .worker import CeleryWorker
+from .cli import parse_args
+from .schema import WorkerSchema
+from .instance import CeleryWorker
 from ..config import celery_config
 
 
-# Create a configuration instance for the I/O-bound task worker:
-# - Listen on the dedicated I/O-bound queue.
-# - Uses the 'gevent' pool to leverage cooperative multitasking for I/O operations.
-# - Allows higher prefetching to keep the worker busy during I/O waits.
-# - Sets concurrency to 100, which is suitable for I/O-bound workloads with high concurrency needs.
-io_worker_config = WorkerConfig(
-    name = "io_bound_worker",
-    queue_name = celery_config.io_bound_queue_name,
-    pool = "gevent",
-    concurrency = 100,
-    prefetch_multiplier = 3,
-    loglevel = "INFO"
-)
+args = parse_args()
 
-# Initialize the Celery worker instance with the specified configuration.
+io_worker_config = WorkerSchema(
+    name=args.name,
+    queue_name=celery_config.io_bound_queue_name,
+    pool="gevent",
+    concurrency=args.concurrency,
+    prefetch_multiplier=args.prefetch_multiplier,
+    loglevel=args.loglevel,
+)
+"""
+Configuration for the I/O-bound task worker.
+
+Listens on the dedicated I/O-bound queue and uses the gevent pool
+for efficient cooperative multitasking during I/O waits,
+allowing high concurrency without spawning additional processes.
+"""
+
 io_worker = CeleryWorker(io_worker_config)
+"""
+Celery worker instance configured for I/O-intensive task execution.
+"""
 
 # Entry point for running the I/O-bound worker directly.
-# When this script is executed, it will start a Celery worker configured for I/O-intensive tasks.
+# When this script is executed, it starts a Celery worker
+# configured for I/O-intensive tasks.
 if __name__ == "__main__":
     io_worker.start()

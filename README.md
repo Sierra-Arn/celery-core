@@ -88,13 +88,27 @@ a next-generation web-based interactive development environment for Jupyter note
     ```
 
 5. **Start Redis database**
-   ```bash
-   just redis-up
-   ```
+
+    ```bash
+    just redis-up
+    ```
+
+6. **Start Celery workers** (each in a separate terminal)
+    
+    ```bash
+    pixi run just worker-cpu
+    ```
+    
+    ```bash
+    pixi run just worker-io
+    ```
+
+    > **Note:**  
+    It's normal to see red error messages in the CPU-bound worker logs — tasks are designed to randomly fail to verify Celery's error handling behavior in the absence of retry logic. For the I/O-bound worker, failed tasks will automatically be retried — this is expected behavior.
 
 ### **III. Testing**
 
-Once a database is ready, you can run and test the Celery implementation with the interactive Jupyter notebook `playground-testing.ipynb`. It demonstrates all core functionality — including task dispatch via `delay`, `apply_async`, and `apply`, priority-based execution, result retrieval with `get()`, and worker-specific behavior.
+Once the broker and Celery workers are ready, you can run and test the Celery implementation with the interactive Jupyter notebook `playground-testing.ipynb`. It demonstrates all core functionality — including task dispatch via `delay`, `apply_async`, `apply`, and result retrieval with `get()`.
 
 1. **Launch JupyterLab**
 
@@ -120,7 +134,10 @@ When you finish testing:
 1. **Stop JupyterLab**  
    In the terminal where JupyterLab is running, press `Ctrl+C` to shut it down.
 
-2. **Stop Redis**
+2. **Stop Celery workers**  
+   In each terminal where a celery worker is running, press `Ctrl+C` to shut it down.
+
+3. **Stop Redis**
 
     ```bash
     just redis-down

@@ -1,7 +1,8 @@
 # app/task_queue/config.py
 from typing import ClassVar
 from pydantic import Field
-from .shared import BaseConfig
+from ..shared import BaseConfig
+from ..db.config import redis_config
 
 
 class CeleryConfig(BaseConfig):
@@ -10,14 +11,6 @@ class CeleryConfig(BaseConfig):
 
     Attributes
     ----------
-    redis_host : str
-        Hostname or IP address of the Redis server. Default is "127.0.0.1".
-    redis_external_port : int
-        TCP port the Redis server listens on. Must be in range 1-65535. Default is 6379.
-    redis_username : str
-        Username for Redis authentication.
-    redis_password : str
-        Password for Redis authentication.
     broker_db_index : int
         Redis database index used for the message broker. Default is 0.
     result_db_index : int
@@ -38,13 +31,11 @@ class CeleryConfig(BaseConfig):
         Number of seconds after which task results expire and are deleted. Default is 60.
     cpu_bound_queue_name : str
         Name of the queue for CPU-intensive tasks. Default is "cpu-bound".
-    cpu_bound_queue_max_priority : int
-        Maximum priority level for the CPU-bound queue. Lower numbers mean higher priority. Default is 5.
     io_bound_queue_name : str
         Name of the queue for I/O-intensive tasks. Default is "io-bound".
-    io_bound_queue_max_priority : int
-        Maximum priority level for the I/O-bound queue. Lower numbers mean higher priority. Default is 3.
-
+    exchange_name : str
+        Name of the shared exchange that routes messages to both task queues. Default is "tasks".
+        
     Notes
     -----
     This class inherits from `app.task_queue.shared.base_config.BaseConfig`.
@@ -63,10 +54,6 @@ class CeleryConfig(BaseConfig):
 
     env_prefix: ClassVar[str] = "CELERY_"
 
-    redis_host: str = "127.0.0.1"
-    redis_external_port: int = Field(default=6379, ge=1, le=65535)
-    redis_username: str
-    redis_password: str
     broker_db_index: int = Field(default=0, ge=0)
     result_db_index: int = Field(default=1, ge=0)
     app_name: str = "celery-core"
@@ -77,26 +64,8 @@ class CeleryConfig(BaseConfig):
     enable_utc: bool = True
     result_expires: int = 60
     cpu_bound_queue_name: str = "cpu-bound"
-    cpu_bound_queue_max_priority: int = 5
     io_bound_queue_name: str = "io-bound"
-    io_bound_queue_max_priority: int = 3
-
-    @property
-    def redis_connection_url(self) -> str:
-        """
-        Build Redis connection URL from configuration settings.
-
-        Returns
-        -------
-        str
-            Complete Redis connection URL with credentials
-            in the format: redis://username:password@host:port
-        """
-        return (
-            f"redis://{self.redis_username}:"
-            f"{self.redis_password}@"
-            f"{self.redis_host}:{self.redis_external_port}"
-        )
+    exchange_name: str = "tasks"
 
     @property
     def broker_url(self) -> str:
@@ -108,7 +77,8 @@ class CeleryConfig(BaseConfig):
         str
             Broker URL in format: redis://username:password@host:port/db_index
         """
-        return f"{self.redis_connection_url}/{self.broker_db_index}"
+
+        return f"{redis_config.connection_url}/{self.broker_db_index}"
 
     @property
     def result_backend_url(self) -> str:
@@ -120,7 +90,32 @@ class CeleryConfig(BaseConfig):
         str
             Result backend URL in format: redis://username:password@host:port/db_index
         """
-        return f"{self.redis_connection_url}/{self.result_db_index}"
+        
+        return f"{redis_config.connection_url}/{self.result_db_index}"
+
+    @property
+    def exchange_type(self) -> str:
+        """
+        Exchange type used for task queue routing.
+
+        Returns
+        -------
+        str
+            Always returns ``"direct"``.
+
+        Notes
+        -----
+        This value is intentionally immutable and not configurable via environment variables.
+        The entire queue routing logic — binding of ``cpu_bound_queue_name`` and
+        ``io_bound_queue_name`` to a single shared exchange via their respective routing keys —
+        is built on the assumption of a ``direct`` exchange.
+
+        Changing this to ``fanout`` or ``topic`` would break routing:
+        messages would be delivered to both queues simultaneously (fanout)
+        or require pattern-based routing keys (topic) which are not configured here.
+        """
+
+        return "direct"
 
 
 # Initialize Celery configuration singleton

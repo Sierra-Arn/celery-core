@@ -27,13 +27,13 @@ copy-env:
 # Make Redis ACL generation script executable  
 # Grants execute permissions to the script that dynamically creates Redis user ACL rules  
 make-x:  
-    chmod +x app/initialization/generate-redis-acl.sh
+    chmod +x app/db/initialization/generate-redis-acl.sh
 
 # Generate Redis ACL configuration file  
 # Executes the ACL script to produce 01-create-users.acl based on current .env settings  
 # Output file will be mounted into the Redis container for authentication and access control  
 gen-acl:  
-    ./app/initialization/generate-redis-acl.sh
+    ./app/db/initialization/generate-redis-acl.sh
 
 
 # =====================================================
@@ -46,6 +46,24 @@ redis-up:
 # Stop and remove Redis container
 redis-down:
     docker compose --env-file .env down
+
+# =====================================================
+# Celery Workers Management
+# =====================================================
+# Start CPU-bound Celery worker
+worker-cpu concurrency="1" prefetch="1" loglevel="INFO":
+    python -m app.task_queue.workers.cpu_bound \
+        --concurrency {{concurrency}} \
+        --prefetch-multiplier {{prefetch}} \
+        --loglevel {{loglevel}}
+
+# Start I/O-bound Celery worker
+worker-io concurrency="100" prefetch="3" loglevel="INFO":
+    python -m app.task_queue.workers.io_bound \
+        --concurrency {{concurrency}} \
+        --prefetch-multiplier {{prefetch}} \
+        --loglevel {{loglevel}}
+
 
 # =====================================================
 # Redis Interactive Shell Access (Celery Redis)

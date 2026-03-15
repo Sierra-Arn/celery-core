@@ -5,7 +5,7 @@ This section defines a role-based access control (RBAC) model for Redis, using d
 ## **I. Administrative User**
 
 ```bash
-user ${REDIS_ADMIN_USERNAME} on >${REDIS_ADMIN_PASSWORD} ~* &* +@all
+user ${REDIS_ADMIN_NAME} on >${REDIS_ADMIN_PASSWORD} ~* &* +@all
 ```
 
 ### **Assigned permissions**
@@ -24,7 +24,7 @@ Provides full administrative control over the Redis instance.
 ## **II. Celery User**
 
 ```bash
-user ${CELERY_REDIS_USERNAME} on >${REDIS_ADMIN_PASSWORD} ~* &* +@all -@dangerous -@admin
+user ${REDIS_USER_NAME} on >${REDIS_USER_PASSWORD} ~* &* +@all -@dangerous -@admin
 ```
 
 ### **Assigned permissions**
