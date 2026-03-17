@@ -24,7 +24,7 @@ Redis was chosen as the message broker due to its simplicity, reliability, and f
 ## **Dependencies Overview**
 
 - [celery](https://github.com/celery/celery) — 
-a distributed task queue framework for Python, enabling asynchronous task execution, scheduling, and distributed processing with support for multiple brokers and result backends.
+a distributed task queue framework for Python supporting multiple execution models: synchronous, multiprocessing, and cooperative multitasking.
 
 - [pydantic-settings](https://github.com/pydantic/pydantic-settings) — 
 a Pydantic-powered library for managing application configuration and environment variables with strong typing, validation, and seamless `.env` support.
