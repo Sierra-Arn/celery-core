@@ -15,31 +15,32 @@ from .instance import CeleryWorker
 from ..config import celery_config
 
 
-args = parse_args()
-
-io_worker_config = WorkerSchema(
-    name=args.name,
-    queue_name=celery_config.io_bound_queue_name,
-    pool="gevent",
-    concurrency=args.concurrency,
-    prefetch_multiplier=args.prefetch_multiplier,
-    loglevel=args.loglevel,
-)
-"""
-Configuration for the I/O-bound task worker.
-
-Listens on the dedicated I/O-bound queue and uses the gevent pool
-for efficient cooperative multitasking during I/O waits,
-allowing high concurrency without spawning additional processes.
-"""
-
-io_worker = CeleryWorker(io_worker_config)
-"""
-Celery worker instance configured for I/O-intensive task execution.
-"""
-
 # Entry point for running the I/O-bound worker directly.
 # When this script is executed, it starts a Celery worker
 # configured for I/O-intensive tasks.
 if __name__ == "__main__":
+
+    args = parse_args()
+
+    io_worker_config = WorkerSchema(
+        name=args.name,
+        queue_name=celery_config.io_bound_queue_name,
+        pool="gevent",
+        concurrency=args.concurrency,
+        prefetch_multiplier=args.prefetch_multiplier,
+        loglevel=args.loglevel,
+    )
+    """
+    Configuration for the I/O-bound task worker.
+
+    Listens on the dedicated I/O-bound queue and uses the gevent pool
+    for efficient cooperative multitasking during I/O waits,
+    allowing high concurrency without spawning additional processes.
+    """
+
+    io_worker = CeleryWorker(io_worker_config)
+    """
+    Celery worker instance configured for I/O-intensive task execution.
+    """
+
     io_worker.start()
